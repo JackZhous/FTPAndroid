@@ -1,0 +1,21 @@
+<!--
+  ~         Copyright (C) 2016-2017 宙斯
+  ~         All rights reserved
+  ~
+  ~        filename :Class4
+  ~        description :
+  ~
+  ~         created by jackzhous at  11/07/2016 12:12:12
+  ~         http://blog.csdn.net/jackzhouyu
+  -->
+
+<resources>
+    <string name="app_name">FTPClient</string>
+    <string name="login_title">请输入FTP信息</string>
+    <string name="ftp_server">FTP服务器地址</string>
+    <string name="ftp_port">FTP监听端口</string>
+    <string name="login_user">登录用户名</string>
+    <string name="login_passwd">登录密码</string>
+    <string name="ok">connect</string>
+    <string name="cancal">取消</string>
+</resources>
