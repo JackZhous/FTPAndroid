@@ -37,6 +37,7 @@ public class Constant {
     public static final int                       FLAG_FTP_CONNECT_LOGIN = 0x02;
     public static final int                       FLAG_GET_LIST = 0x03;
     public static final int                       FLAG_DOWNLOAD = 0x04;
+    public static final int                       FLAG_DOWNLOAD_PROGRESS = 0x05;
 
     public static final int                       SUCCESS = 0x01;
     public static final int                       FAILED  = 0x00;

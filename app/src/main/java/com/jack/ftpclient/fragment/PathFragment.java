@@ -18,6 +18,7 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -135,7 +136,9 @@ public class PathFragment extends BaseFragment {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     HashMap<String, Object> data = new HashMap<>();
-                                    data.put(Constant.DOWNLOAD_FILE, mCurrentDirectory.toString().substring(1) + ftpFile.getName());
+                                    String filename = mCurrentDirectory.toString().substring(1) + ftpFile.getName();
+                                    ftpFile.setName(filename);
+                                    data.put(Constant.DOWNLOAD_FILE, ftpFile);
                                     mListener.fragCallback(Constant.FLAG_DOWNLOAD, data);
                                 }
                             })

@@ -1,18 +1,6 @@
-/*
- *         Copyright (C) 2016-2017 宙斯
- *         All rights reserved
- *
- *        filename :Class4
- *        description :
- *
- *         created by jackzhous at  11/07/2016 12:12:12
- *         http://blog.csdn.net/jackzhouyu
- */
-
 package com.jack.ftpclient.util;
 
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 
@@ -34,7 +22,6 @@ public class FileUtil {
 
     private void init(){
         defaultFilePath = Environment.getExternalStorageDirectory().getPath() + File.separator + "ftppath";
-        Log.i("jackzhous", "path " + defaultFilePath);
         File defaultDiectory = new File(defaultFilePath);
         if(!defaultDiectory.exists()){
             defaultDiectory.mkdirs();
@@ -49,4 +36,21 @@ public class FileUtil {
         return instance;
     }
 
+
+    public File createLoaclFile(String filename){
+        String file = defaultFilePath + File.separator + filename;
+        File createFile = new File(file);
+
+        return createFile;
+    }
+
+
+    public void deleteLocalFile(File file){
+        if(file == null){
+            return;
+        }
+        if(file.exists()){
+            file.delete();
+        }
+    }
 }
