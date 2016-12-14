@@ -75,11 +75,6 @@ public class LoginFragment extends BaseFragment {
 
     }
 
-    @Override
-    public void notifyData() {
-
-    }
-
     private static class ConnectedListener implements View.OnClickListener{
 
         WeakReference<LoginFragment> weakReference;
@@ -154,5 +149,15 @@ public class LoginFragment extends BaseFragment {
         map.put(Constant.IP, "10.8.240.25");
         map.put(Constant.PORT, "2121");
         return map;
+    }
+
+    @Override
+    public void onBackPressed() {
+        mListener.exitApp();
+    }
+
+    @Override
+    public void notifyData(boolean delete) {
+
     }
 }

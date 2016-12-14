@@ -33,5 +33,7 @@ public abstract class BaseFragment extends Fragment {
 
     public abstract void setFragmentData(Object obj);
 
-    public abstract void notifyData();
+    public abstract void notifyData(boolean delete);
+
+    public abstract void onBackPressed();
 }

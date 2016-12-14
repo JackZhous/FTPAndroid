@@ -48,8 +48,10 @@ public class ConnectTask implements Runnable {
         try {
             FTPClient client = FTPThreadPool.mClient;
             Message msg = mHandler.obtainMessage(Constant.FLAG_FTP_CONNECT_LOGIN);
-            if(bean != null && client != null && !client.isConnected()){
-                client.connect(bean.getIP(), bean.getPort());
+            if(bean != null){
+                if(!client.isConnected()){
+                    client.connect(bean.getIP(), bean.getPort());
+                }
                 client.login(bean.getUsernmae(), bean.getPasswd());
                 msg.arg1 = Constant.SUCCESS;
             }else{

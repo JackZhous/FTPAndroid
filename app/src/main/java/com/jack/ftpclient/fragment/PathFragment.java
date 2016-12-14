@@ -18,6 +18,7 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +34,11 @@ import com.jack.ftpclient.bean.PathBean;
 import com.jack.ftpclient.inter.FragmentListener;
 import com.jack.ftpclient.util.Constant;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import it.sauronsoftware.ftp4j.FTPFile;
 
@@ -48,10 +53,11 @@ public class PathFragment extends BaseFragment {
 
     private FragmentListener            mListener;
     private Activity                    mActivity;
-    private FTPFile[]                   mFTPFileList;
+    private LinkedList<FTPFile>         mFTPFileList;
     private TextView                    mPathTitle;
     private ListAdapter                 mListAdapter;
     private StringBuilder               mCurrentDirectory;
+    private int                         mDeletePosition = -1;
 
     private static Drawable             mFileDrawable;
     private static Drawable             mDirectoryDrawable;
@@ -61,6 +67,8 @@ public class PathFragment extends BaseFragment {
     public PathFragment() {
         super();
         mCurrentDirectory = new StringBuilder();
+        mFTPFileList = new LinkedList<>();
+
     }
 
 
@@ -89,10 +97,26 @@ public class PathFragment extends BaseFragment {
     private void init(View view){
         ListView listView = (ListView)view.findViewById(R.id.path_lv);
         mPathTitle = (TextView)view.findViewById(R.id.path_title);
-        mPathTitle.setText("/");
         mListAdapter = new ListAdapter();
         listView.setAdapter(mListAdapter);
         listView.setOnItemClickListener(new MyOnItemClickListener());
+        listView.setOnItemLongClickListener(new ListItemOnLongClickListener());
+    }
+
+    private void listDirectory(String filename){
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(Constant.PATH, filename);
+        mListener.fragCallback(Constant.FLAG_GET_LIST, map);
+    }
+
+    private class ListItemOnLongClickListener implements AdapterView.OnItemLongClickListener{
+        @Override
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+            FTPFile ftpFile = mFTPFileList.get(i);
+            mDeletePosition = i;
+            showAlertDialog(ftpFile, Constant.FLAG_DELETE_FILE);
+            return false;
+        }
     }
 
 
@@ -103,53 +127,55 @@ public class PathFragment extends BaseFragment {
 
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            FTPFile ftpFile = mFTPFileList[i];
+            FTPFile ftpFile = mFTPFileList.get(i);
             switch (ftpFile.getType()){
                 case FTPFile.TYPE_DIRECTORY:
-                    listDirectory(ftpFile);
+                    listDirectory(ftpFile.getName());
                     break;
 
                 case FTPFile.TYPE_FILE:
-                    showFilePropert(ftpFile);
+                    showAlertDialog(ftpFile, Constant.FLAG_DOWNLOAD);
                     break;
             }
         }
 
 
-        private void listDirectory(FTPFile ftpFile){
-            HashMap<String, Object> map = new HashMap<>();
-            map.put(Constant.PATH, ftpFile.getName());
-            mListener.fragCallback(Constant.FLAG_GET_LIST, map);
-        }
 
-        private void showFilePropert(final FTPFile ftpFile){
-            StringBuilder sb = new StringBuilder();
-            sb.append(mCurrentDirectory.toString());
-            sb.append("\n");
-            sb.append("文件名： " + ftpFile.getName());
-            sb.append("\n");
-            sb.append("文件大小: " + ftpFile.getSize());
+    }
 
-            new AlertDialog.Builder(mActivity).setTitle("文件属性")
-                            .setMessage(sb.toString())
-                            .setNegativeButton("下载", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    HashMap<String, Object> data = new HashMap<>();
-                                    String filename = mCurrentDirectory.toString().substring(1) + ftpFile.getName();
-                                    ftpFile.setName(filename);
-                                    data.put(Constant.DOWNLOAD_FILE, ftpFile);
-                                    mListener.fragCallback(Constant.FLAG_DOWNLOAD, data);
-                                }
-                            })
-                            .setPositiveButton("取消", null).show();
-        }
+    private void showAlertDialog(final FTPFile ftpFile, final int flag){
+        StringBuilder sb = new StringBuilder();
+        sb.append(mCurrentDirectory.toString());
+        sb.append("\n");
+        sb.append("文件名： " + ftpFile.getName());
+        sb.append("\n");
+        sb.append("文件大小: " + ftpFile.getSize());
+
+        final String str = (flag == Constant.FLAG_DELETE_FILE) ? Constant.DELETE_FILE : Constant.DOWNLOAD_FILE;
+        new AlertDialog.Builder(mActivity).setTitle("文件属性")
+                .setMessage(sb.toString())
+                .setNegativeButton(str, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        HashMap<String, Object> data = new HashMap<>();
+                        String filename = mCurrentDirectory.toString().substring(1) + ftpFile.getName();
+                        data.put(Constant.PATH, filename);
+                        data.put(Constant.TYPE, ftpFile.getType());
+                        data.put(Constant.SIZE, ftpFile.getSize());
+                        mListener.fragCallback(flag, data);
+                    }
+                })
+                .setPositiveButton("取消", null).show();
     }
 
     private void setmPathBean(PathBean bean) {
-        mFTPFileList = bean.getCurrentList();
+        FTPFile[] list =bean.getCurrentList();
+        for(FTPFile file : list){
+            mFTPFileList.add(file);
+        }
         mCurrentDirectory.append(bean.getCurrentPath());
         mCurrentDirectory.append("/");
+        Log.i("jackzhous", "--" + mCurrentDirectory.toString());
         if(mPathTitle != null){
             mPathTitle.setText(mCurrentDirectory.toString());
         }
@@ -164,7 +190,11 @@ public class PathFragment extends BaseFragment {
     }
 
     @Override
-    public void notifyData() {
+    public void notifyData(boolean object) {
+        if(object && mFTPFileList != null){
+            mFTPFileList.remove(mDeletePosition);
+            mDeletePosition = -1;
+        }
         if(mListAdapter != null){
             mListAdapter.notifyDataSetChanged();
         }
@@ -184,13 +214,13 @@ public class PathFragment extends BaseFragment {
 
         @Override
         public int getCount() {
-            return mFTPFileList.length;
+            return mFTPFileList.size();
 
         }
 
         @Override
         public Object getItem(int i) {
-            return mFTPFileList[i];
+            return mFTPFileList.get(i);
         }
 
         @Override
@@ -200,7 +230,7 @@ public class PathFragment extends BaseFragment {
 
         @Override
         public View getView(int i, View containerView, ViewGroup viewGroup) {
-            FTPFile ftpFile = mFTPFileList[i];
+            FTPFile ftpFile = mFTPFileList.get(i);
             ItemBean bean;
             if(containerView == null){
                 containerView = LayoutInflater.from(mActivity).inflate(R.layout.path_list_item, null);
@@ -235,4 +265,19 @@ public class PathFragment extends BaseFragment {
     }
 
 
+    @Override
+    public void onBackPressed() {
+
+        if(mCurrentDirectory.length() <= 2){     //根目录
+            mListener.exitApp();
+            return;
+        }
+        mCurrentDirectory.deleteCharAt(mCurrentDirectory.lastIndexOf("/"));
+        Log.i("jackzhous", "before " + mCurrentDirectory);
+        String directory = mCurrentDirectory.substring(1, mCurrentDirectory.lastIndexOf("/"));
+        mCurrentDirectory.delete(mCurrentDirectory.lastIndexOf("/"), mCurrentDirectory.length());
+        mCurrentDirectory.delete(mCurrentDirectory.lastIndexOf("/"), mCurrentDirectory.length());
+        Log.i("jackzhous", "after " + mCurrentDirectory + " " + directory);
+        listDirectory(directory);
+    }
 }

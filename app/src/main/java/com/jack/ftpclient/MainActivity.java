@@ -2,17 +2,17 @@ package com.jack.ftpclient;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.os.Handler;
-import android.os.Message;
+import android.os.*;
+import android.os.Process;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.jack.ftpclient.bean.PathBean;
 import com.jack.ftpclient.factory.ConnectTask;
+import com.jack.ftpclient.factory.DeleteFileTask;
 import com.jack.ftpclient.factory.DownloadTask;
 import com.jack.ftpclient.factory.FTPThreadPool;
 import com.jack.ftpclient.factory.FragmentFactory;
@@ -26,18 +26,17 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
-import it.sauronsoftware.ftp4j.FTPFile;
 import it.sauronsoftware.ftp4j.FTPIllegalReplyException;
 
 
 public class MainActivity extends FragmentActivity {
     private static final String       TAG = Constant.AUTHOR + " --- " + "MainActivity";
-    private static final int          MAX = 1000;
     private FragmentListener          listener;
     private FragmentManager           mManager;
     private FTPThreadPool             mThreadPool;
     private Handler                   mHandler;
     private ProgressDialog            mDownloadFileDialog;
+    private BaseFragment              mBaseFragment;
 
 
     @Override
@@ -55,10 +54,10 @@ public class MainActivity extends FragmentActivity {
 
 
     public void showFragDialog(){
-        BaseFragment dialogFragment = FragmentFactory.createDialogFragment();
+        mBaseFragment = FragmentFactory.createDialogFragment();
         FragmentTransaction transaction = mManager.beginTransaction();
-        transaction.replace(R.id.container, dialogFragment, Constant.TAG_FRAGMENT_LOGIN);
-        dialogFragment.setFragmentListener(listener);
+        transaction.replace(R.id.container, mBaseFragment, Constant.TAG_FRAGMENT_LOGIN);
+        mBaseFragment.setFragmentListener(listener);
         transaction.addToBackStack(null);
         transaction.commitAllowingStateLoss();
     }
@@ -76,21 +75,25 @@ public class MainActivity extends FragmentActivity {
 
     /**
      * 下载文件
-     * @param file
      */
-    private void downLoadFile(Object file){
-        FTPFile ftpFile = (FTPFile)file;
-        Runnable download = new DownloadTask(ftpFile, mHandler);
+    private void downLoadFile(Object data){
+        HashMap map = (HashMap)data;
+        Runnable download = new DownloadTask(map, mHandler);
         mThreadPool.executeTask(download);
-        createProgressBar(ftpFile.getName());
+        createProgressBar(map.get(Constant.PATH).toString());
     }
 
+    private void deleteRemote(Object object){
+        HashMap map = (HashMap)object;
+        Runnable delete = new DeleteFileTask(mHandler, map);
+        mThreadPool.executeTask(delete);
+    }
 
     private void createProgressBar(String fileName){
         mDownloadFileDialog = new ProgressDialog(this);
         mDownloadFileDialog.setTitle("下载文件中....");
         mDownloadFileDialog.setMessage(fileName);
-        mDownloadFileDialog.setMax(MAX);
+        mDownloadFileDialog.setMax(Constant.PROGRESS_MAX);
         mDownloadFileDialog.setProgress(0);
         mDownloadFileDialog.setCanceledOnTouchOutside(false);
         mDownloadFileDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -114,8 +117,6 @@ public class MainActivity extends FragmentActivity {
         if(mDownloadFileDialog == null){
             return;
         }
-
-        Log.i(TAG, "progress " + percent);
         mDownloadFileDialog.setProgress(percent);
         mDownloadFileDialog.show();
     }
@@ -138,13 +139,21 @@ public class MainActivity extends FragmentActivity {
                         break;
 
                     case Constant.FLAG_DOWNLOAD:
-                        Object ftpFile = code.get(Constant.DOWNLOAD_FILE);
-                        downLoadFile(ftpFile);
+                        downLoadFile(code);
                         break;
 
-
+                    case Constant.FLAG_DELETE_FILE:
+                        deleteRemote(code);
+                        break;
 
                 }
+            }
+
+
+            @Override
+            public void exitApp() {
+                mManager.popBackStack();
+                finish();
             }
         };
     }
@@ -182,11 +191,16 @@ public class MainActivity extends FragmentActivity {
                 case Constant.FLAG_DOWNLOAD:
                     activity.mDownloadFileDialog.dismiss();
                     activity.mDownloadFileDialog = null;
-                    Log.i(TAG, "下载成功");
                     break;
 
                 case Constant.FLAG_DOWNLOAD_PROGRESS:
                     activity.showProgressBar(message.arg1);
+                    break;
+
+                case Constant.FLAG_DELETE_FILE:
+                    String msg = Constant.SUCCESS == message.arg1 ? "删除完成" : "删除失败";
+                    Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+                    activity.mBaseFragment.notifyData(true);
                     break;
             }
         }
@@ -217,12 +231,13 @@ public class MainActivity extends FragmentActivity {
                     fragment = FragmentFactory.createPathFragment();
                     FragmentTransaction transaction = activity.mManager.beginTransaction();
                     transaction.replace(R.id.container, fragment, Constant.TAG_FRAGMENT_PATH);
-                    transaction.addToBackStack(null);
+                    //transaction.addToBackStack(null);
                     transaction.commit();
                     fragment.setFragmentListener(activity.listener);
                 }
                 fragment.setFragmentData(bean);
-                fragment.notifyData();
+                fragment.notifyData(false);
+                activity.mBaseFragment = fragment;
             }else{
                 Toast.makeText(activity, "获取路径失败", Toast.LENGTH_SHORT).show();
             }
@@ -249,11 +264,24 @@ public class MainActivity extends FragmentActivity {
     }
 
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mThreadPool.recyleSelf();
+
+        android.os.Process.killProcess(Process.myPid());
+    }
+
+    @Override
+    public void onBackPressed() {
+       // super.onBackPressed();
+        if(mBaseFragment != null){
+            mBaseFragment.onBackPressed();
+        }
     }
 }

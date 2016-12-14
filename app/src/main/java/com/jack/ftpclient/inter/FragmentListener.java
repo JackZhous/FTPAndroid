@@ -23,4 +23,7 @@ import java.util.HashMap;
  ************/
 public interface FragmentListener {
     void fragCallback(int flag, HashMap<String, Object> map);
+
+
+    void exitApp();
 }

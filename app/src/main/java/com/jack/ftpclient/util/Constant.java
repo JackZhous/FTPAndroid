@@ -25,7 +25,10 @@ public class Constant {
     public static final String                    TAG_FRAGMENT_PATH = "path";
 
     public static final String                    PATH = "path";
-    public static final String                    DOWNLOAD_FILE = "file";
+    public static final String                    TYPE = "type";
+    public static final String                    SIZE = "size";
+    public static final String                    DOWNLOAD_FILE = "download";
+    public static final String                    DELETE_FILE = "delete";
 
     public static final String                    USERNAME="username";
     public static final String                    PASSWD = "passwd";
@@ -38,7 +41,9 @@ public class Constant {
     public static final int                       FLAG_GET_LIST = 0x03;
     public static final int                       FLAG_DOWNLOAD = 0x04;
     public static final int                       FLAG_DOWNLOAD_PROGRESS = 0x05;
+    public static final int                       FLAG_DELETE_FILE = 0x06;
 
     public static final int                       SUCCESS = 0x01;
     public static final int                       FAILED  = 0x00;
+    public static final int                       PROGRESS_MAX = 1000;
 }

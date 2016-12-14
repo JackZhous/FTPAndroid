@@ -22,6 +22,7 @@ import com.jack.ftpclient.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import it.sauronsoftware.ftp4j.FTPAbortedException;
 import it.sauronsoftware.ftp4j.FTPClient;
@@ -41,16 +42,19 @@ public class DownloadTask implements Runnable{
 
     private static final String             TAG = Constant.AUTHOR + "-DownloadTask";
     private Handler                         mHandler;
-    private FTPFile                         mFtpFile;
+    private HashMap                         mData;
     private FTPDataTransferListener         mListener;
     private long fileSize                   = 0;
+    private long remoteSize                 = 0;
     private File                            mLocalFile;
 
-    public DownloadTask(FTPFile file, Handler handler) {
+    public DownloadTask(HashMap data, Handler handler) {
         mHandler = handler;
-        mFtpFile = file;
+        mData = data;
         mListener = new DownloadFileListener();
-        String localFileName = mFtpFile.getName().substring(mFtpFile.getName().lastIndexOf("/") + 1);
+        String path = mData.get(Constant.PATH).toString();
+        String localFileName = path.substring(path.lastIndexOf("/") + 1);
+        remoteSize = (Long)mData.get(Constant.SIZE);
         mLocalFile = FileUtil.getInstance().createLoaclFile(localFileName);
     }
 
@@ -67,7 +71,7 @@ public class DownloadTask implements Runnable{
                 mHandler.sendMessage(msg);
                 return;
             }
-            client.download(mFtpFile.getName(), mLocalFile, mListener);
+            client.download(mData.get(Constant.PATH).toString(), mLocalFile, mListener);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (FTPIllegalReplyException e) {
@@ -94,7 +98,7 @@ public class DownloadTask implements Runnable{
             fileSize = fileSize + i;
             Message msg = mHandler.obtainMessage();
             msg.what = Constant.FLAG_DOWNLOAD_PROGRESS;
-            msg.arg1 = (int)(fileSize * 1000 / mFtpFile.getSize());
+            msg.arg1 = (int)(fileSize * Constant.PROGRESS_MAX / remoteSize);
             mHandler.sendMessage(msg);
 
         }
