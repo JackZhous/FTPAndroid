@@ -66,8 +66,8 @@
       <file leaf-file-name="PathFragment.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/jack/ftpclient/fragment/PathFragment.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6622296">
-              <caret line="177" column="64" selection-start-line="177" selection-start-column="64" selection-end-line="177" selection-end-column="64" />
+            <state vertical-scroll-proportion="0.62562394">
+              <caret line="176" column="38" selection-start-line="176" selection-start-column="38" selection-end-line="176" selection-end-column="38" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#6762#6763#0" expanded="true" />
@@ -2562,8 +2562,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/jack/ftpclient/fragment/PathFragment.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6622296">
-          <caret line="177" column="64" selection-start-line="177" selection-start-column="64" selection-end-line="177" selection-end-column="64" />
+        <state vertical-scroll-proportion="0.62562394">
+          <caret line="176" column="38" selection-start-line="176" selection-start-column="38" selection-end-line="176" selection-end-column="38" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#6762#6763#0" expanded="true" />
