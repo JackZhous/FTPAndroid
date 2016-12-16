@@ -139,15 +139,11 @@ public class LoginFragment extends BaseFragment {
         }
 
         map = new HashMap<>();
-//        map.put(Constant.USERNAME, username);
-//        map.put(Constant.PASSWD, passwd);
-//        map.put(Constant.IP, ip);
-//        map.put(Constant.PORT, port);
+        map.put(Constant.USERNAME, username);
+        map.put(Constant.PASSWD, passwd);
+        map.put(Constant.IP, ip);
+        map.put(Constant.PORT, port);
 
-        map.put(Constant.USERNAME, "ftp");
-        map.put(Constant.PASSWD, "ftp");
-        map.put(Constant.IP, "10.8.240.25");
-        map.put(Constant.PORT, "2121");
         return map;
     }
 

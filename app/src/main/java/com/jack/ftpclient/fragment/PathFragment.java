@@ -34,6 +34,7 @@ import com.jack.ftpclient.bean.PathBean;
 import com.jack.ftpclient.inter.FragmentListener;
 import com.jack.ftpclient.util.Constant;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -168,15 +169,58 @@ public class PathFragment extends BaseFragment {
                 .setPositiveButton("取消", null).show();
     }
 
+    public static String getEncoding(String str) {
+        String encode = "GB2312";
+        try {
+            if (str.equals(new String(str.getBytes(encode), encode))) {
+                String s = encode;
+                return s;
+            }
+        } catch (Exception exception) {
+        }
+        encode = "ISO-8859-1";
+        try {
+            if (str.equals(new String(str.getBytes(encode), encode))) {
+                String s1 = encode;
+                return s1;
+            }
+        } catch (Exception exception1) {
+        }
+        encode = "UTF-8";
+        try {
+            if (str.equals(new String(str.getBytes(encode), encode))) {
+                String s2 = encode;
+                return s2;
+            }
+        } catch (Exception exception2) {
+        }
+        encode = "GBK";
+        try {
+            if (str.equals(new String(str.getBytes(encode), encode))) {
+                String s3 = encode;
+                return s3;
+            }
+        } catch (Exception exception3) {
+        }
+        return "";
+    }
+
     private void setmPathBean(PathBean bean) {
-        FTPFile[] list =bean.getCurrentList();
+        FTPFile[] list = bean.getCurrentList();
+        mFTPFileList.clear();
+
         for(FTPFile file : list){
+            if(file.getName().startsWith(".")){
+                continue;
+            }
+            Log.i("jackzhous", "code " + getEncoding(file.getName()));
             mFTPFileList.add(file);
         }
         mCurrentDirectory.append(bean.getCurrentPath());
         mCurrentDirectory.append("/");
         Log.i("jackzhous", "--" + mCurrentDirectory.toString());
         if(mPathTitle != null){
+            Log.i("jackzhous", "directory view is null");
             mPathTitle.setText(mCurrentDirectory.toString());
         }
     }
@@ -186,6 +230,15 @@ public class PathFragment extends BaseFragment {
         if(obj instanceof PathBean){
             PathBean bean = (PathBean)obj;
             setmPathBean(bean);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mPathTitle != null){
+            Log.i("jackzhous", "directory view is null");
+            mPathTitle.setText(mCurrentDirectory.toString());
         }
     }
 
@@ -241,7 +294,14 @@ public class PathFragment extends BaseFragment {
             }else{
                 bean = (ItemBean)containerView.getTag();
             }
-            bean.mTextView.setText(ftpFile.getName());
+            String filename = null;
+            try {
+                filename = new String(ftpFile.getName().getBytes(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                filename = ftpFile.getName();
+            }
+            bean.mTextView.setText(filename);
             bean.mImageView.setImageDrawable(getDrawableWithType(ftpFile.getType()));
             return containerView;
         }

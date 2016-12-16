@@ -14,6 +14,7 @@ package com.jack.ftpclient.factory;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.jack.ftpclient.bean.FTPConnectBean;
 import com.jack.ftpclient.util.ConfigLoader;
@@ -54,6 +55,7 @@ public class ConnectTask implements Runnable {
                 }
                 client.login(bean.getUsernmae(), bean.getPasswd());
                 msg.arg1 = Constant.SUCCESS;
+
             }else{
                 msg.arg1 = Constant.FAILED;
             }

@@ -62,37 +62,45 @@ public class GetPathTask implements Runnable {
         boolean isFailed = false;
             try {
                 client = FTPThreadPool.mClient;
+
                 if(!client.isConnected()){
                     Message msg = handler.obtainMessage(Constant.FLAG_FTP_CONNECT_LOGIN);
                     msg.arg1 = Constant.FAILED;
                     handler.sendMessage(msg);
                 }
+
                 client.changeDirectory(mPath);
                 FTPFile[] fileList = client.list();
                 PathBean bean = new PathBean();
                 bean.setCurrentPath(mPath);
                 bean.setCurrentList(fileList);
 
-
                 Message msg = handler.obtainMessage(Constant.FLAG_GET_LIST);
                 msg.arg1 = Constant.SUCCESS;
                 msg.obj = bean;
                 handler.sendMessage(msg);
             } catch (IOException e) {
+                Log.i("jackzhous", "path --- 1");
                 e.printStackTrace();
                 isFailed = true;
             } catch (FTPIllegalReplyException e) {
+                Log.i("jackzhous", "path --- 2");
                 e.printStackTrace();
+                isFailed = true;
             } catch (FTPException e) {
+                Log.i("jackzhous", "path --- 3");
                 isFailed = true;
                 e.printStackTrace();
             } catch (FTPAbortedException e) {
+                Log.i("jackzhous", "path --- 4");
                 isFailed = true;
                 e.printStackTrace();
             } catch (FTPListParseException e) {
+                Log.i("jackzhous", "path --- 5");
                 isFailed = true;
                 e.printStackTrace();
             } catch (FTPDataTransferException e) {
+                Log.i("jackzhous", "path --- 6");
                 isFailed = true;
                 e.printStackTrace();
             }
